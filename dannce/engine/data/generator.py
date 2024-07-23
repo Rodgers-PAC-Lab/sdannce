@@ -188,6 +188,7 @@ class DataGenerator_3Dconv(DataGenerator):
         mirror: bool = False,
         predict_flag: bool = False,
         segmentation_model=None,
+        n_instances: int = 1, # added by LW 2024-05-16
     ):
         """Initialize data generator.
 
@@ -252,6 +253,7 @@ class DataGenerator_3Dconv(DataGenerator):
             mirror,
             predict_flag,
         )
+        self.n_instances = n_instances # added by LW 2024-05-16
         self.vmin = vmin
         self.vmax = vmax
         self.nvox = nvox
@@ -296,7 +298,7 @@ class DataGenerator_3Dconv(DataGenerator):
                 self.camera_params[experimentID][camname]["M"] = M
 
         print("Init took {} sec.".format(time.time() - ts))
-
+        
         self.pj_method = self.pj_grid_mirror if self.mirror else self.pj_grid
 
     def __getitem__(self, index: int):
@@ -313,6 +315,7 @@ class DataGenerator_3Dconv(DataGenerator):
         # Find list of IDs
         list_IDs_temp = self.list_IDs[index*self.batch_size : (index+1)*self.batch_size]
         # Generate data
+        
         X, y = self.__data_generation(list_IDs_temp)
 
         return X, y

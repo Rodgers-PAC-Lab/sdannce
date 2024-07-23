@@ -743,7 +743,8 @@ def infer_dannce(generator,
             probmap = torch.amax(pred[1],
                                  dim=(2, 3,
                                       4)).squeeze(0).detach().cpu().numpy()
-            heatmaps = pred[1].squeeze().detach().cpu().numpy()
+            heatmaps = ops.spatial_softmax(pred[1].squeeze().detach().cpu()) #Modified by LW 2024-05-24
+            heatmaps = heatmaps.numpy()
             pred = pred[0].detach().cpu().numpy()
             for j in range(pred.shape[0]):
                 pred_max = probmap[j]

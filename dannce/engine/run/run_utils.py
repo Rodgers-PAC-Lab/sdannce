@@ -44,8 +44,8 @@ def set_device(params, logger):
         params["gpu_id"] = list(range(torch.cuda.device_count()))
         device = torch.device("cuda")  # use all available GPUs
     else:
-        params["gpu_id"] = [0]
-        device = torch.device("cuda")
+       # params["gpu_id"] = [0]
+        device = torch.device("cuda:{}".format(params["gpu_id"]))
     logger.info("***Use {} GPU for training.***".format(params["gpu_id"]))
     # device = "cuda:0" if torch.cuda.is_available() else "cpu"
     return device
@@ -114,7 +114,6 @@ def experiment_setup(params, mode):
     logger.add(f"stats_{mode}.log", format="{time:YYYY-MM-DD HH:mm} | {level} | {message}")
     # deploy GPU devices
     device = set_device(params, logger)
-    
     # fix random seed if specified
     if params["random_seed"] is not None:
         set_random_seed(params["random_seed"])
@@ -130,7 +129,6 @@ def make_dataset(
     exps = params["exp"]
     num_experiments = len(exps)
     params["experiment"] = {}
-
     (
         samples,
         datadict,
@@ -789,7 +787,7 @@ def _make_data_mem(
     Training samples are stored in the memory and deployed on the fly.
     """
     n_cams = len(camnames[0])
-
+    
     genfunc = (
         generator.DataGenerator_3Dconv_social
         if params["social_training"]
@@ -997,7 +995,6 @@ def make_dataset_inference(params, valid_params):
     com3d_dict = {}
     cameras = {}
     camnames = {}
-
     num_experiments = len(params["experiment"])
     for e in range(num_experiments):
         (

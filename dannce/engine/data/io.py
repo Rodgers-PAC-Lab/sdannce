@@ -95,6 +95,7 @@ def load_com(path: Text) -> Dict:
     Returns:
         Dict: Dictionary with com data
     """
+    print(path)
     try:
         d = sio.loadmat(path)["com"]
         data = {}
@@ -128,5 +129,6 @@ def load_camnames(path: Text) -> Union[List, None]:
     except:
         label_3d_file = mat73.loadmat(path)
         if "camnames" in label_3d_file:
-            camnames = [name[0] for name in label_3d_file["camnames"]]
+            # camnames = [name[0] for name in label_3d_file["camnames"]]
+            camnames = [name for name in label_3d_file["camnames"]] # modified by LW 2024/05/15
     return camnames

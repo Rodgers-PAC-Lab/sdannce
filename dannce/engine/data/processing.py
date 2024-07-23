@@ -23,6 +23,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from dannce.engine.data import serve_data_DANNCE, io
 from dannce.config import make_paths_safe, make_none_safe
 from dannce.config import _DEFAULT_VIDDIR, _DEFAULT_VIDDIR_SIL
+import pdb
 """
 VIDEO
 """
@@ -150,7 +151,6 @@ def load_expdict(
     exp = make_paths_safe(exp)
     exp["label3d_file"] = expdict["label3d_file"]
     exp["base_exp_folder"] = os.path.dirname(exp["label3d_file"])
-
     if "viddir" not in expdict:
         # if the videos are not at the _DEFAULT_VIDDIR, then it must
         # be specified in the io.yaml experiment portion
@@ -326,7 +326,6 @@ def do_COM_load(exp: Dict, expdict: Dict, e, params: Dict, training=True):
          return_full2d=params["return_full2d"]
          if "return_full2d" in params.keys() else False,
     )
-
     # If there is "clean" data (full marker set), can take the
     # 3D COM from the labels
     if exp["com_fromlabels"] and training:
@@ -336,8 +335,83 @@ def do_COM_load(exp: Dict, expdict: Dict, e, params: Dict, training=True):
             com3d_dict_[key] = np.nanmean(
                 datadict_3d_[key], axis=1, keepdims=True
             )
+    # modified by LW 2024-05-16. I added another condition that's identical but handles exp
     elif "com_file" in expdict and expdict["com_file"] is not None:
         exp["com_file"] = expdict["com_file"]
+        if ".mat" in exp["com_file"]:
+            c3dfile = sio.loadmat(exp["com_file"])
+            com3d_dict_ = check_COM_load(
+                c3dfile, "com", params["medfilt_window"]
+            )
+
+            # unlabeled frames sampling
+            # currently assume that all training com files are named `instance%ncom3d.mat`
+            # and there are exactly two instances
+            if training and (params["unlabeled_sampling"] is not None) and ('instance' in exp["com_file"].split('/')[-1]):
+                unlabeled_sampling = params["unlabeled_sampling"]
+                sampling_num = unlabeled_sampling
+                if not isinstance(unlabeled_sampling, int):
+                    assert unlabeled_sampling in ['equal']
+                    sampling_num = len(samples_)
+
+                # read com
+                if 'instance0' in exp["com_file"]:
+                    pair_com_file = exp["com_file"].replace('instance0', 'instance1')
+                else:
+                    pair_com_file = exp["com_file"].replace('instance1', 'instance0')
+                
+                selected_samples = []
+                if params.get("valid_exp") is not None and e in params["valid_exp"]:
+                    selected_samples = []
+                elif os.path.exists(pair_com_file):
+                    comfile = sio.loadmat(pair_com_file)
+                    c3d = comfile["com"]
+                    sampleIDs = np.squeeze(comfile["sampleID"])
+                    com_dist = np.sum((c3d-c3dfile["com"]) ** 2, axis=1)
+                    com_dist = np.squeeze(np.sqrt(com_dist))  # [N]
+                    # only sample from close interaction? hard coded distance threshold for now
+                    indices_below_thres = np.where(com_dist < 120)[0]
+                    indices_existing = [i for i in range(len(sampleIDs)) if sampleIDs[i] in samples_]
+                    indices_below_thres = list(set(
+                        indices_below_thres) - set(indices_existing))
+                    sampling_num = min(sampling_num, len(indices_below_thres))
+                    selected_indices = np.random.choice(
+                        indices_below_thres, size=sampling_num, replace=False)
+                    selected_samples = sampleIDs[selected_indices]
+                
+                logger.info("Unlabeled sampling: EXP {} added {} samples".format(e, len(selected_samples)))
+                samples_ = list(samples_) + list(selected_samples)
+                samples_ = sorted(samples_)
+                samples_ = np.array(samples_)
+
+                nKeypoints = params["n_channels_out"]
+                for i in range(len(selected_samples)):
+                    samp = selected_samples[i]
+                    data, frames = {}, {}
+                    for j in range(len(params["camnames"])):
+                        frames[params["camnames"][j]] = samp
+                        data[params["camnames"][j]] = np.nan * np.ones((2, nKeypoints))
+                    datadict_[samp] = {"data": data, "frames": frames}
+                    datadict_3d_[samp] = np.nan * np.ones((3, nKeypoints))
+
+        elif ".pickle" in exp["com_file"]:
+            datadict_, com3d_dict_ = serve_data_DANNCE.prepare_COM(
+                exp["com_file"],
+                datadict_,
+                comthresh=params["comthresh"],
+                weighted=params["weighted"],
+                camera_mats=cameras_,
+                method=params["com_method"],
+            )
+            if params["medfilt_window"] is not None:
+                raise Exception(
+                    "Sorry, median filtering a com pickle is not yet supported. Please use a com3d.mat or *dannce.mat file instead"
+                )
+        else:
+            raise Exception("Not a valid com file format")
+
+    elif "com_file" in expdict["exp"][0] and expdict["exp"][0]["com_file"] is not None:
+        exp["com_file"] = expdict["exp"][0]["com_file"]
         if ".mat" in exp["com_file"]:
             c3dfile = sio.loadmat(exp["com_file"])
             com3d_dict_ = check_COM_load(
@@ -948,6 +1022,7 @@ def load_volumes_into_mem(
             y = np.reshape(y, (-1, *y.shape[2:]))
 
     else:
+       # breakpoint()
         for i in tqdm(range(n_samples)):
             rr = generator.__getitem__(i)
             if params["expval"]:

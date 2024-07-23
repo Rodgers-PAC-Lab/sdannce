@@ -306,7 +306,7 @@ def initialize_train(params, n_cams, device, logger):
 
         # load checkpoints
         model.load_state_dict(state_dict, strict=False)
- 
+
         model_params = [p for p in model.parameters() if p.requires_grad]
         optimizer = torch.optim.Adam(model_params, lr=params["lr"], eps=1e-7)
     

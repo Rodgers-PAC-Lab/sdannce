@@ -38,6 +38,8 @@ def dannce_train(params: Dict):
         shared_args_valid,
     ) = config.setup_train(params)
 
+    
+
     spec_args = params["dataset_args"]
     spec_args = {} if spec_args is None else spec_args
 
@@ -130,7 +132,7 @@ def dannce_predict(params: Dict):
         device,
         params["n_markers"],
         predict_generator_sil,
-        save_heatmaps=False,
+        save_heatmaps=True,   # Changed to True by LW 2024-05-23
     )
     inference.save_results(params, save_data)
 
