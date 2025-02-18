@@ -173,7 +173,6 @@ def load_expdict(
         exp["camnames"] = expdict["camnames"]
     elif l3d_camnames is not None:
         exp["camnames"] = l3d_camnames
-
     # if logger is not None:
     #     logger.info("Experiment {} using camnames: {}".format(e, exp["camnames"]))
 

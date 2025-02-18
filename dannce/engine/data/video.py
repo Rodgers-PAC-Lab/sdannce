@@ -243,11 +243,14 @@ class LoadVideoFrame:
             for key, value in self.currvideo.items():
                 if previous_camera_name in key:
                     if value is not None:
-                        self.currvideo[
-                            key
-                        ].close() if self.predict_flag else self.currvideo[
-                            key
-                        ]._reader_.release()
+                        try:
+                            self.currvideo[
+                                key
+                            ].close() if self.predict_flag else self.currvideo[
+                                key
+                            ]._reader_.release()
+                        except:
+                            print("Video already closed!")
             self.currvideo[camname] = vid
         im = self._load_frame_multiple_attempts(frame_num, vid)
         return im
