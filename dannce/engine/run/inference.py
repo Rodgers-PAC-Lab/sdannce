@@ -654,7 +654,9 @@ def infer_dannce(generator,
     """
     n_frames = len(generator)
     bs = params["batch_size"]
-    generator_maxbatch = np.ceil(n_frames / bs)
+    # generator_maxbatch = np.ceil(n_frames / bs)
+    # LW changed 2024-09-18 because it was dividing by bs an extra time and quartering my video
+    generator_maxbatch = n_frames
     
     if params["maxbatch"] != "max" and params["maxbatch"] > generator_maxbatch:
         print(

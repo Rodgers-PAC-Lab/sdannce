@@ -44,8 +44,8 @@ def set_device(params, logger):
         params["gpu_id"] = list(range(torch.cuda.device_count()))
         device = torch.device("cuda")  # use all available GPUs
     else:
-       # params["gpu_id"] = [0]
-        device = torch.device("cuda:{}".format(params["gpu_id"]))
+       params["gpu_id"] = [0]
+       device = torch.device(params["gpu_id"][0])
     logger.info("***Use {} GPU for training.***".format(params["gpu_id"]))
     # device = "cuda:0" if torch.cuda.is_available() else "cpu"
     return device
