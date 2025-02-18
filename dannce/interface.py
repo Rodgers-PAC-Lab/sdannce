@@ -132,7 +132,7 @@ def dannce_predict(params: Dict):
         device,
         params["n_markers"],
         predict_generator_sil,
-        save_heatmaps=True,   # Changed to True by LW 2024-05-23
+        save_heatmaps=False,   # Changed to True by LW 2024-05-23 (undone 2025-01-24--don't do this)
     )
     inference.save_results(params, save_data)
 
