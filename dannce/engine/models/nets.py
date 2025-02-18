@@ -349,7 +349,7 @@ def initialize_com_train(params, device, logger):
 
     elif params["train_mode"] == "finetune":
         logger.info("*** Finetuning from {}. ***".format(params["com_finetune_weights"]))
-        checkpoints = torch.load(params["com_finetune_weights"])
+        checkpoints = torch.load(params["com_finetune_weights"], map_location=device)
         model = initialize_com_model(params, device)
 
         state_dict = checkpoints["state_dict"]
