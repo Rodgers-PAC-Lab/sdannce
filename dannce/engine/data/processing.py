@@ -628,9 +628,15 @@ def make_data_splits(
                 tinds = [
                     i for i in range(len(samples)) if int(samples[i].split("_")[0]) == e
                 ]
-                valid_inds = valid_inds + list(
-                    np.random.choice(tinds, (v,), replace=False)
-                )
+                try:
+                    valid_inds = valid_inds + list(
+                        np.random.choice(tinds, (v,), replace=False)
+                    )
+                except:
+                    print("broke")
+                    print(len(tinds))
+                    breakpoint()
+                    raise TypeError
                 valid_inds = list(np.sort(valid_inds))
 
             train_inds = [i for i in all_inds if i not in valid_inds]
