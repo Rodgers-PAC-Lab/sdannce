@@ -21,6 +21,7 @@ from dannce.engine.utils.experiment import (make_folder, set_device,
                                             set_random_seed)
 from dannce.engine.utils.save import (save_params_pickle, save_params_yaml,
                                       write_com_file)
+from dannce.engine.skeletons.utils import SYMMETRY, load_body_profile
 
 
 def experiment_setup(
@@ -203,6 +204,15 @@ def make_dataset(
         "vidreaders": vids,
         "chunks": total_chunks,
     }
+
+    # compute segment length priors from data if specified
+    if 'BoneLengthLoss' in params['loss']:
+        if params['loss']['BoneLengthLoss'].get('compute_priors_from_data', False):
+            pose3d = deepcopy(np.stack(list(datadict_3d.values()), axis=0))
+            pose3d = np.transpose(pose3d, (0, 2, 1))  # [N, n_kpts, 3]
+            
+            prior_path = compute_segment_length_priors(params, pose3d)
+            logger.debug(f"Applying segment priors computed from n={len(pose3d)} training samples ({prior_path}) instead of loading from file. Check if this behavior is desired.")
 
     # Prepare datasets and dataloaders
     makedata_func = _make_data_npy if params["use_npy"] else _make_data_mem
@@ -1187,6 +1197,8 @@ def make_data_com(params, train_params, valid_params):
         chan_num=params["chan_num"],
     )
 
+    logger.info(f'***TRAIN:VALIDATION = {ims_train.shape[0]}:{ims_valid.shape[0]}***')
+
     def collate_fn(batch):
         X = torch.cat([item[0] for item in batch], dim=0)
         y = torch.cat([item[1] for item in batch], dim=0)
@@ -1617,3 +1629,32 @@ def make_pair(
     )
 
     return train_dataloader, valid_dataloader, len(camnames[0])
+
+
+def compute_segment_length_priors(params, pose3d, ref_segment_idx=3):
+    notnan = ~np.isnan(pose3d.sum(-1).sum(-1))
+    pose3d = pose3d[notnan]
+    
+    body_profile = params['loss'].get('body_profile', 'rat23')
+    limbs = np.array(load_body_profile(body_profile)["limbs"])
+    
+    kpts_from = pose3d[:, limbs[:, 0]]
+    kpts_to = pose3d[:, limbs[:, 1]]
+    segment_lengths = np.linalg.norm(kpts_from - kpts_to, axis=-1) #[n_samples, n_segments]
+    
+    # compute relative ratios between segments to account for differences in body size
+    # default idx = 3, earL-earR
+    segment_lengths = segment_lengths / segment_lengths[:, ref_segment_idx][:, np.newaxis] # [n_samples, n_segments]
+    segment_means = np.mean(segment_lengths, axis=0)
+    segment_stds = np.std(segment_lengths, axis=0)
+    
+    priors = np.stack((segment_means, segment_stds), axis=-1)
+
+    prior_savepath = os.path.join(
+        os.path.abspath(params["dannce_train_dir"]),
+        f"{body_profile}_priors.npy"
+    )
+    np.save(prior_savepath, priors)
+    params['loss']['BoneLengthLoss']["priors"] = prior_savepath
+    params['loss']['BoneLengthLoss']["relative_scale"] = True
+    return prior_savepath
