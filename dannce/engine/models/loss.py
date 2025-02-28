@@ -61,7 +61,8 @@ class MSELoss(BaseLoss):
         # if len(heatmap_gt.shape) == 5:
         #     heatmap_gt = heatmap_gt.permute(0, 4, 1, 2, 3)
         loss = F.mse_loss(heatmap_gt, heatmap_pred)
-
+        if torch.isnan(loss):
+            breakpoint()
         return self.loss_weight * loss
 
 
