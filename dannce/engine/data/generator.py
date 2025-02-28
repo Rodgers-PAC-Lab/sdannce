@@ -6,6 +6,8 @@ import warnings
 from copy import deepcopy
 from multiprocessing.dummy import Pool as ThreadPool
 from typing import Dict, List, Text, Tuple
+import warnings
+warnings.filterwarnings("error")
 
 import cv2
 import imageio
@@ -1732,10 +1734,18 @@ class DataGenerator_COM(torch.utils.data.Dataset):
         if self.downsample > 1:
             X = image_utils.downsample_batch(X, fac=self.downsample, method=self.dsmode)
             if self.labelmode == "prob":
+                y_original = y
                 y = image_utils.downsample_batch(
                     y, fac=self.downsample, method=self.dsmode
                 )
-                y /= np.max(np.max(y, axis=1), axis=1)[:, np.newaxis, np.newaxis, :]
+                y_ds = y
+                try:
+                    y /= np.max(np.max(y, axis=1), axis=1)[:, np.newaxis, np.newaxis, :]
+                except:
+                    nan_map = np.isnan(y_original)
+                    nan_idx = np.where(np.isnan(y_original))
+                    breakpoint()
+
 
         if self.mono and self.n_channels_in == 3:
             # Go from 3 to 1 channel using RGB conversion. This will also
