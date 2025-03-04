@@ -1734,11 +1734,11 @@ class DataGenerator_COM(torch.utils.data.Dataset):
         if self.downsample > 1:
             X = image_utils.downsample_batch(X, fac=self.downsample, method=self.dsmode)
             if self.labelmode == "prob":
-                y_original = y
+                y_original = np.copy(y)
                 y = image_utils.downsample_batch(
                     y, fac=self.downsample, method=self.dsmode
                 )
-                y_ds = y
+                y_ds = np.copy(y)
                 try:
                     y /= np.max(np.max(y, axis=1), axis=1)[:, np.newaxis, np.newaxis, :]
                 except:
