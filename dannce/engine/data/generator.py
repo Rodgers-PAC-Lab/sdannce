@@ -1734,17 +1734,23 @@ class DataGenerator_COM(torch.utils.data.Dataset):
         if self.downsample > 1:
             X = image_utils.downsample_batch(X, fac=self.downsample, method=self.dsmode)
             if self.labelmode == "prob":
-                y_original = np.copy(y)
+#                y_original = np.copy(y)
                 y = image_utils.downsample_batch(
                     y, fac=self.downsample, method=self.dsmode
                 )
-                y_ds = np.copy(y)
-                try:
-                    y /= np.max(np.max(y, axis=1), axis=1)[:, np.newaxis, np.newaxis, :]
-                except:
-                    nan_map = np.isnan(y_original)
-                    nan_idx = np.where(np.isnan(y_original))
-                    breakpoint()
+#                y_ds = np.copy(y)
+#                try:
+                y_max = np.max(np.max(y, axis=1), axis=1)[:, np.newaxis, np.newaxis, :]
+
+                    # Don't normalize if max prob is exactly equal to 0.
+                y_max[y_max == 0.] = 1
+                    # y = y / np.max(np.max(y, axis=1), axis=1)[:, np.newaxis, np.newaxis, :]
+                y = y / y_max
+
+#                except:
+#                    nan_map = np.isnan(y_original)
+#                    nan_idx = np.where(np.isnan(y_original))
+#                    breakpoint()
 
 
         if self.mono and self.n_channels_in == 3:
