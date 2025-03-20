@@ -942,7 +942,6 @@ def make_dataset_inference(params, valid_params):
     camnames = {}
 
     num_experiments = len(params["experiment"])
-    breakpoint()
     for e in range(num_experiments):
         (
             params["experiment"][e],
