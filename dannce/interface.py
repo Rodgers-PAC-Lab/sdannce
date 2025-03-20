@@ -138,8 +138,7 @@ def dannce_predict(params: Dict):
     logger, device, params, _, partition, predict_generator, model = _predict_prep(
         params, "dannce"
     )
-
-    inference.infer_sdannce(predict_generator, params, {}, model, partition, device)
+    inference.infer_dannce(predict_generator, params, model, partition, device, params["n_channels_out"])
     predict_generator.close_all_readers()
 
 

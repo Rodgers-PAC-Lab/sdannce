@@ -292,7 +292,6 @@ def infer_dannce(
                     print(f"Replace view {view} with {alternative}")
 
             vols = vols.reshape(vols.shape[0], -1, *vols.shape[3:])
-
         model_inputs = [vols.to(device)]
         if params["expval"]:
             model_inputs.append(torch.from_numpy(ims[0][1]).to(device))
