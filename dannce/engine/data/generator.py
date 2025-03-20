@@ -369,7 +369,6 @@ class DataGenerator_3Dconv(DataGenerator):
         this_y[0, :] = this_y[0, :] - self.crop_width[0]
         this_y[1, :] = this_y[1, :] - self.crop_height[0]
         com = torch.mean(this_y, axis=1)
-
         thisim = self.load_frame.load_vid_frame(
             self.labels[ID]["frames"][camname], camname, extension=self.extension,
         )[
