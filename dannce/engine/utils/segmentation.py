@@ -74,7 +74,7 @@ def extract_3d_sil(vol):
     vol[vol > 0] = 1
 
     print(
-        "{}\% of silhouette training voxels are occupied".format(
+        "{}% of silhouette training voxels are occupied".format(
             100 * np.sum(vol) / len(vol.ravel())
         )
     )
@@ -91,7 +91,7 @@ def extract_3d_sil_soft(vol, keeprange=3):
     vol[vol > 0] = (vol[vol > 0] - lower_thres) / keeprange
 
     print(
-        "{}\% of silhouette training voxels are occupied".format(
+        "{}% of silhouette training voxels are occupied".format(
             100 * np.sum((vol > 0)) / len(vol.ravel())
         )
     )

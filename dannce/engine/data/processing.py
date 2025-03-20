@@ -341,6 +341,7 @@ def do_COM_load(exp: Dict, expdict: Dict, e, params: Dict, training=True):
 
     # If there is "clean" data (full marker set), can take the
     # 3D COM from the labels
+    breakpoint()
     if exp["com_fromlabels"] and training:
         logger.info("For experiment {}, calculating 3D COM from labels".format(e))
         com3d_dict_ = deepcopy(datadict_3d_)
