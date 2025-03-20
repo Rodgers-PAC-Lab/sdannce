@@ -283,7 +283,7 @@ class DataGenerator_3Dconv(DataGenerator):
 
         self.device = torch.device("cuda:" + self.gpu_id)
 
-        self.threadpool = ThreadPool(len(self.camnames[0]))
+        # self.threadpool = ThreadPool(len(self.camnames[0]))
         self.segmentation_model = segmentation_model
 
         for experimentID in self.camnames.keys():
@@ -297,12 +297,12 @@ class DataGenerator_3Dconv(DataGenerator):
 
         self.pj_method = self.pj_grid_mirror if self.mirror else self.pj_grid
 
-    def close_all_readers(self):
-        self.threadpool.close()
-        
-        for vid in self.load_frame.currvideo.values():
-            if isinstance(vid, imageio.core.Format.Reader):
-                vid.close()
+    # def close_all_readers(self):
+    #     self.threadpool.close()
+    #     
+    #     for vid in self.load_frame.currvideo.values():
+    #         if isinstance(vid, imageio.core.Format.Reader):
+    #             vid.close()
 
     def __getitem__(self, index: int):
         """Generate one batch of data.
@@ -691,8 +691,9 @@ class DataGenerator_3Dconv(DataGenerator):
 
                 arglist.append(args)
 
-            result = self.threadpool.starmap(self.pj_method, arglist)
-
+            # result = self.threadpool.starmap(self.pj_method, arglist)
+            with ThreadPool(len(self.camnames[0])) as threadpool:
+                result = threadpool.starmap(self.pj_method, arglist)
             for c in range(num_cams):
                 ic = c + i * num_cams
                 X[ic, :, :, :, :] = result[c]
@@ -1218,7 +1219,9 @@ class DataGenerator_3Dconv_social(DataGenerator_3Dconv):
                     com_3ds,
                 ]
             )
-        result = self.threadpool.starmap(self.proj_grid, arglist)
+        with ThreadPool(len(self.camnames[0])) as threadpool:
+            result = self.threadpool.starmap(self.proj_grid, arglist)
+        # result = self.threadpool.starmap(self.proj_grid, arglist)
 
         for c in range(num_cams):
             for j in range(self.n_instances):
@@ -1484,7 +1487,9 @@ class MultiviewImageGenerator(DataGenerator_3Dconv):
             arglist = []
             for c in range(num_cams):
                 arglist.append([ID, self.camnames[experimentID][c], experimentID])
-            results = self.threadpool.starmap(self._load_im, arglist)
+            # results = self.threadpool.starmap(self._load_im, arglist)
+            with ThreadPool(len(self.camnames[0])) as threadpool:
+                results = self.threadpool.starmap(self._load_im, arglist)
 
             ims = np.stack([r[0] for r in results], axis=0).astype(
                 np.uint8
