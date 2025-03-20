@@ -145,6 +145,8 @@ class DANNCETrainer(BaseTrainer):
             total_loss, loss_dict = self.loss.compute_loss(
                 keypoints_3d_gt, keypoints_3d_pred, heatmaps, grid_centers, aux
             )
+            if torch.isnan(total_loss):
+                breakpoint()
             result = f"Epoch[{epoch}/{self.epochs}] " + "".join(
                 f"train_{loss}: {val:.4f} " for loss, val in loss_dict.items()
             )
