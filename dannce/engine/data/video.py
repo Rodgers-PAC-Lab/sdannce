@@ -253,7 +253,10 @@ class LoadVideoFrame:
                         except:
                             print("Video already closed!")
             self.currvideo[camname] = vid
-        im = self._load_frame_multiple_attempts(frame_num, vid)
+        try:
+            im = self._load_frame_multiple_attempts(frame_num, vid)
+        except:
+            breakpoint() # for catching annoying reader close error
         return im
 
     def _load_frame_multiple_attempts(self, frame_num, vid, n_attempts=10):
@@ -288,4 +291,6 @@ class LoadVideoFrame:
         except KeyError:
             time.sleep(5)
             pass
+        # except RuntimeError:
+        #     breakpoint()
         return im

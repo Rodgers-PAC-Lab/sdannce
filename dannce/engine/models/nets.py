@@ -107,9 +107,7 @@ class EncDec3D(nn.Module):
         skip_x3 = x
         skips.append(skip_x3)
         x = self.encoder_pool3(x)
-
         x = self.encoder_res4(x)
-
         # decoder with skip connections
         x = self.decoder_upsample3(x)
         x = self.decoder_res3(torch.cat([x, skip_x3], dim=1))

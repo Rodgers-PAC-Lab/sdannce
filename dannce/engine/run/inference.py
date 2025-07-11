@@ -198,7 +198,8 @@ def infer_dannce_inference_range(
 ):
     n_frames = len(generator)
     bs = params["batch_size"]
-    generator_maxbatch = np.ceil(n_frames / bs)
+    generator_maxbatch = np.ceil(n_frames / bs)  ## LW 2025-05-23. I think this is wrong and only predicts over
+                                                 ## a fraction of frames in the video
 
     if params["maxbatch"] != "max" and params["maxbatch"] > generator_maxbatch:
         print(
