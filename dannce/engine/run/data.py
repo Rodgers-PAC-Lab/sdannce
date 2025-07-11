@@ -565,6 +565,13 @@ def _make_data_npy(
         npydir, missing_npydir, missing_samples = rat7m_npy
         missing_samples = np.array(sorted(missing_samples))
     else:
+        ## Added by LW 2025-07-11
+        # Check if samples is training frames only, and add valid
+        # frames if needed
+        if samples.shape[0] ==  len(partition["train_sampleIDs"]):
+            samples = np.concatenate((samples, partition["valid_sampleIDs"]))
+            assert samples.shape[0] == len(partition["train_sampleIDs"]) + len(partition["valid_sampleIDs"])
+
         # Populate with COM augmented samples if needed
         if params["COM_augmentation"]:
             (
@@ -588,7 +595,7 @@ def _make_data_npy(
             missing_npydir,
             missing_samples,
         ) = serve_data_DANNCE.examine_npy_training(params, samples)
-
+    
     if len(missing_samples) != 0:
         logger.info(
             "{} npy files for experiments {} are missing.".format(
