@@ -347,7 +347,16 @@ def infer_dannce(
                     im = im.astype("uint8")
                     of = os.path.join(savedir, f"{sampleID}_{i}.tif")
                     imageio.mimwrite(of, np.transpose(im, [2, 0, 1]))
-
+    ## Added LW 2025-07-18. Without this, infer_dannce only saves in increments of 1000 frames
+    p_n = savedata_expval(
+                params["dannce_predict_dir"] + "/save_data_AVG.mat",
+                params,
+                write=True,
+                data=save_data,
+                tcoord=False,
+                num_markers=n_chn,
+                pmax=True,
+            )   
     return save_data
 
 
