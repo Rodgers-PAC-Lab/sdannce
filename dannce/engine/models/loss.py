@@ -61,6 +61,7 @@ class MSELoss(BaseLoss):
         # if len(heatmap_gt.shape) == 5:
         #     heatmap_gt = heatmap_gt.permute(0, 4, 1, 2, 3)
         loss = F.mse_loss(heatmap_gt, heatmap_pred)
+
         if torch.isnan(loss):
             breakpoint()
         return self.loss_weight * loss
@@ -111,6 +112,18 @@ class L1Loss(BaseLoss):
 
     def forward(self, kpts_gt, kpts_pred):
         loss = compute_mask_nan_loss(nn.L1Loss(reduction="sum"), kpts_gt, kpts_pred)
+        return self.loss_weight * loss
+
+
+class L1Loss_notail(BaseLoss):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def forward(self, kpts_gt, kpts_pred):
+        no_tail_idx = np.where(np.arange(22) != 7)[0]
+        loss = compute_mask_nan_loss(nn.L1Loss(reduction="sum"), 
+                                     kpts_gt[:, :, no_tail_idx], 
+                                     kpts_pred[:, :, no_tail_idx])
         return self.loss_weight * loss
 
 

@@ -14,7 +14,7 @@ def nanmean_infmean(loss):
     return loss[valid].sum() / num_valid
 
 
-def euclidean_distance_3D(predicted, target):
+def euclidean_distance_3D(predicted, target, kp = None):
     """
     Mean per-joint position error (i.e. mean Euclidean distance),
     often referred to as "Protocol #1" in many papers.
@@ -25,6 +25,38 @@ def euclidean_distance_3D(predicted, target):
     mpjpe = np.linalg.norm((target - predicted), ord=2, axis=0)
     return nanmean_infmean(mpjpe)
 
+def euclidean_distance_3D_tailend(predicted, target):
+    """
+    Position error (Euclidean distance) by for tail end only (mouse22)
+    """
+    assert predicted.shape == target.shape
+    assert predicted.shape[0] in [2, 3]
+
+    mpjpe = np.linalg.norm((target - predicted), ord=2, axis=0)
+    return mpjpe[7]
+
+def euclidean_distance_3D_notail(predicted, target):
+    """
+    Mean per joint position error without the tail end (mouse22)
+    """
+    assert predicted.shape == target.shape
+    assert predicted.shape[0] in [2, 3]
+
+    mpjpe = np.linalg.norm((target - predicted), ord=2, axis=0)
+    mpjpe = np.delete(mpjpe, 7, axis = 0)
+    return nanmean_infmean(mpjpe)
+
+def euclidean_distance_3D_com(predicted, target):
+    """
+    Position error for COM training. Averages across all keypoints to
+    compute target.
+    """
+    target = np.nanmean(target, axis = 1)
+
+    assert predicted.shape == target.shape
+    assert predicted.shape[0] in [2, 3]
+    cpe = np.linalg.norm((target - predicted), ord=2, axis=0)
+    return(cpe)
 
 def p_mpjpe(predicted, target, pmax=None, thresh=None, error=True, scale=False):
     """
